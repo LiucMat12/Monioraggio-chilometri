@@ -27,6 +27,15 @@
             color: red;
             font-weight: bold;
         }
+        #cronologia {
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -40,12 +49,22 @@
     <p id="kmRimanenti">Chilometri rimanenti prima del limite: 30000 km</p>
     <p id="avviso" class="alert"></p>
 
+    <h2>Data dell'ultima modifica</h2>
+    <p id="ultimaModifica">Nessuna modifica ancora.</p>
+
+    <h2>Cronologia dei viaggi</h2>
+    <div id="cronologia">
+        <p id="nessunaCronologia">Nessun viaggio registrato ancora.</p>
+    </div>
+
     <script>
         let kmMassimi = 30000; // Limite massimo di chilometri
-        let kmPercorsiTotali = 0; // Chilometri percorsi totali
+        let kmPercorsiTotali = localStorage.getItem('kmPercorsiTotali') ? parseFloat(localStorage.getItem('kmPercorsiTotali')) : 0;
+        let cronologia = localStorage.getItem('cronologia') ? JSON.parse(localStorage.getItem('cronologia')) : [];
+        let ultimaModifica = localStorage.getItem('ultimaModifica') ? localStorage.getItem('ultimaModifica') : null;
 
+        // Funzione per aggiungere i chilometri del viaggio
         function aggiungiViaggio() {
-            // Prende il valore dall'input
             let kmViaggio = parseFloat(document.getElementById("kmPercorsi").value);
             
             if (isNaN(kmViaggio) || kmViaggio <= 0) {
@@ -53,16 +72,39 @@
                 return;
             }
 
-            // Controlla se superiamo il limite massimo
+            // Controlla se il totale dei chilometri supererà il limite
             if (kmPercorsiTotali + kmViaggio > kmMassimi) {
                 document.getElementById("avviso").textContent = "Attenzione: supererai il limite di chilometri!";
             } else {
-                // Aggiunge i chilometri al totale
+                // Aggiungi i chilometri al totale
                 kmPercorsiTotali += kmViaggio;
                 document.getElementById("avviso").textContent = "";
             }
 
-            // Aggiorna i dati nella pagina
+            // Salva il totale aggiornato in localStorage
+            localStorage.setItem('kmPercorsiTotali', kmPercorsiTotali);
+
+            // Registra la data e l'ora dell'ultima modifica
+            let dataCorrente = new Date();
+            ultimaModifica = dataCorrente.toLocaleString();
+            localStorage.setItem('ultimaModifica', ultimaModifica);
+
+            // Aggiungi alla cronologia
+            cronologia.push({
+                km: kmViaggio,
+                data: ultimaModifica
+            });
+            localStorage.setItem('cronologia', JSON.stringify(cronologia));
+
+            // Aggiorna i dati visualizzati sulla pagina
+            aggiornaPagina();
+
+            // Pulisce l'input
+            document.getElementById("kmPercorsi").value = '';
+        }
+
+        // Funzione per aggiornare la visualizzazione sulla pagina
+        function aggiornaPagina() {
             document.getElementById("totalePercorsi").textContent = `Totale chilometri percorsi: ${kmPercorsiTotali} km`;
             let kmRimanenti = kmMassimi - kmPercorsiTotali;
             document.getElementById("kmRimanenti").textContent = `Chilometri rimanenti prima del limite: ${kmRimanenti} km`;
@@ -71,9 +113,37 @@
                 document.getElementById("avviso").textContent = "Hai raggiunto o superato il limite massimo di chilometri!";
             }
 
-            // Ripulisce l'input
-            document.getElementById("kmPercorsi").value = '';
+            // Visualizza la data dell'ultima modifica
+            if (ultimaModifica) {
+                document.getElementById("ultimaModifica").textContent = `Ultima modifica: ${ultimaModifica}`;
+            } else {
+                document.getElementById("ultimaModifica").textContent = "Nessuna modifica ancora.";
+            }
+
+            // Aggiorna la cronologia
+            aggiornaCronologia();
         }
+
+        // Funzione per aggiornare la cronologia dei viaggi
+        function aggiornaCronologia() {
+            const cronologiaDiv = document.getElementById("cronologia");
+            cronologiaDiv.innerHTML = ''; // Pulisce il contenuto della cronologia
+
+            if (cronologia.length === 0) {
+                document.getElementById("nessunaCronologia").textContent = "Nessun viaggio registrato ancora.";
+            } else {
+                document.getElementById("nessunaCronologia").textContent = ""; // Nasconde il messaggio di assenza di cronologia
+                cronologia.forEach((viaggio) => {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.textContent = `Chilometri aggiunti: ${viaggio.km} km, Data: ${viaggio.data}`;
+                    cronologiaDiv.appendChild(logEntry);
+                });
+            }
+        }
+
+        // Quando la pagina viene caricata, aggiorna la visualizzazione
+        document.addEventListener('DOMContentLoaded', aggiornaPagina);
     </script>
 </body>
 </html>
