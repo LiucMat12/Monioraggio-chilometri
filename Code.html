@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoraggio Chilometraggio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input {
+            padding: 5px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .alert {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monitoraggio del Chilometraggio</h1>
+    <label for="kmPercorsi">Chilometri percorsi nel viaggio:</label>
+    <input type="number" id="kmPercorsi" placeholder="Inserisci i chilometri" />
+    <button onclick="aggiungiViaggio()">Aggiungi Viaggio</button>
+
+    <h2>Chilometraggio</h2>
+    <p id="totalePercorsi">Totale chilometri percorsi: 0 km</p>
+    <p id="kmRimanenti">Chilometri rimanenti prima del limite: 20000 km</p>
+    <p id="avviso" class="alert"></p>
+
+    <script>
+        let kmMassimi = 20000; // Limite massimo di chilometri
+        let kmPercorsiTotali = 0; // Chilometri percorsi totali
+
+        function aggiungiViaggio() {
+            // Prende il valore dall'input
+            let kmViaggio = parseFloat(document.getElementById("kmPercorsi").value);
+            
+            if (isNaN(kmViaggio) || kmViaggio <= 0) {
+                alert("Inserisci un numero valido di chilometri.");
+                return;
+            }
+
+            // Controlla se superiamo il limite massimo
+            if (kmPercorsiTotali + kmViaggio > kmMassimi) {
+                document.getElementById("avviso").textContent = "Attenzione: supererai il limite di chilometri!";
+            } else {
+                // Aggiunge i chilometri al totale
+                kmPercorsiTotali += kmViaggio;
+                document.getElementById("avviso").textContent = "";
+            }
+
+            // Aggiorna i dati nella pagina
+            document.getElementById("totalePercorsi").textContent = `Totale chilometri percorsi: ${kmPercorsiTotali} km`;
+            let kmRimanenti = kmMassimi - kmPercorsiTotali;
+            document.getElementById("kmRimanenti").textContent = `Chilometri rimanenti prima del limite: ${kmRimanenti} km`;
+
+            if (kmRimanenti <= 0) {
+                document.getElementById("avviso").textContent = "Hai raggiunto o superato il limite massimo di chilometri!";
+            }
+
+            // Ripulisce l'input
+            document.getElementById("kmPercorsi").value = '';
+        }
+    </script>
+</body>
+</html>
